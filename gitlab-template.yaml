@@ -78,11 +78,11 @@ objects:
           deploymentconfig: "${APPLICATION_NAME}"
       spec:
         volumes:
-        - emptyDir:
-            medium: ""
+        - hostPath:
+            path: /var/gitlab/vol1
           name: gitlab-ce-volume-1
-        - emptyDir:
-            medium: ""
+        - hostPath:
+            path: /var/gitlab/vol2
           name: gitlab-ce-volume-2
         containers:
         - name: gitlab-ce

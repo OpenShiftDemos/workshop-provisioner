@@ -4,7 +4,8 @@ set -x
 
 #blueprint
 #* create admin user (in blueprint)
-#
+#* create /var/gitlab/vol1,2
+#* set selinux context to system_u:object_r:svirt_sandbox_file_t:s0
 #deployer
 
 PROJECTNAME=workshop-infra
