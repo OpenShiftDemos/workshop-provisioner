@@ -17,7 +17,7 @@ oc login https://$MASTERHOST:$MASTERPORT -u $ADMINUSER -p $ADMINPASSWORD
 oc adm new-project workshop-infra --admin $ADMINUSER --node-selector='env=infra'
 
 # set scc for anyuid
-oc adm policy add-scc-to-group privileged system:serviceaccounts:workshop-infra
+oc adm policy add-scc-to-group anyuid system:serviceaccounts:workshop-infra
 
 # switch to workshop-infra project
 oc project workshop-infra
