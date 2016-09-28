@@ -2,35 +2,29 @@
 
 set -x
 
-#blueprint
-#* create admin user (in blueprint)
-# htpasswd -b /etc/origin/openshift-passwd admin somepassword
-#* create /var/gitlab/vol1,2 on infra
-#* create /var/nexus on infra
-# mkdir -p /var/{gitlab/vol1,gitlab/vol2,nexus}
-#* set 775 for created dirs (gitlab)
-#* gitlab creates stuff as multiple users/groups which is bizarre and I don't want to use facls so this will
-# just remain unsafe
-# chmod -R 777 /var/gitlab
-# chown -R 200:200 /var/nexus
-#* set selinux context for all created dirs to system_u:object_r:svirt_sandbox_file_t:s0
-#* NOT RECOMMENDED FOR PRODUCTION
-# chcon -R system_u:object_r:svirt_sandbox_file_t:s0 /var/nexus
-# chcon -R system_u:object_r:svirt_sandbox_file_t:s0 /var/gitlab
-#deployer
+#master
+#htpasswd -b /etc/origin/openshift-passwd admin somepassword
+#oc adm policy add-cluster-role-to-user cluster-admin admin
+#
+#infra
+#mkdir -p /var/{gitlab/vol1,gitlab/vol2,nexus}
+#chmod -R 777 /var/gitlab
+#chown -R 200:200 /var/nexus
+#chcon -R system_u:object_r:svirt_sandbox_file_t:s0 /var/nexus
+#chcon -R system_u:object_r:svirt_sandbox_file_t:s0 /var/gitlab
 
 PROJECTNAME=workshop-infra
 GITLABHOSTNAME=gitlab-$PROJECTNAME.$CLOUDDOMAIN
 NEXUS_BASE_URL=nexus-$PROJECTNAME.$CLOUDDOMAIN
 
 # login as user with admin permissions
-oc login https://$MASTERHOST:$MASTERPORT -u $ADMINUSER -p $ADMINPASSWORD
+oc login --insecure-skip-tls-verify=true https://$MASTERHOST:$MASTERPORT -u $ADMINUSER -p $ADMINPASSWORD
 
 # create nexus project
 oc adm new-project workshop-infra --admin $ADMINUSER --node-selector='env=infra'
 
 # set scc for anyuid
-oc adm policy add-scc-to-group anyuid system:serviceaccounts:workshop-infra
+oc adm policy add-scc-to-group hostmount-anyuid system:serviceaccounts:workshop-infra
 
 # switch to workshop-infra project
 oc project workshop-infra
@@ -38,7 +32,7 @@ oc project workshop-infra
 # create gitlab
 oc process -f gitlab-template.yaml -v APPLICATION_HOSTNAME=$GITLABHOSTNAME -v GITLAB_ROOT_PASSWORD=password | oc create -f -
 
-# wait for gitlab to be ready - it's really slow
+# wait for gitlab to be ready - it's really slow because the image is big and it's just slow in our environment
 x=1
 oc get ep gitlab-ce -o yaml | grep "\- addresses:"
 while [ ! $? -eq 0 ]
@@ -46,7 +40,7 @@ do
   sleep 60
   x=$(( $x + 1 ))
 
-  if [ $x -gt 7 ]
+  if [ $x -gt 10 ]
   then
     exit 255
   fi
@@ -118,5 +112,7 @@ EOF
 rm -rf ~/.m2/repository/
 mkdir repos
 git clone https://github.com/jorgemoralespou/ose3-parks repos/ose3-parks
-mvn -s maven.xml -f repos/ose3-parks/mlbparks-mongo/pom.xml clean
-mvn -s maven.xml -f repos/ose3-parks/web-parksmap/pom.xml clean
+git clone https://github.com/gshipley/openshift3mlbparks repos/openshift3mlbparks
+mvn -s maven.xml -f repos/ose3-parks/mlbparks-mongo/pom.xml install
+mvn -s maven.xml -f repos/ose3-parks/web-parksmap/pom.xml install
+mvn -s maven.xml -f repos/openshift3mlbparks/pom.xml install
