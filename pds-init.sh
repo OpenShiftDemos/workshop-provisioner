@@ -13,7 +13,7 @@ ssh root@infranode1.example.com "chcon -R system_u:object_r:svirt_sandbox_file_t
 ssh root@infranode1.example.com "chcon -R system_u:object_r:svirt_sandbox_file_t:s0 /var/gitlab"
 
 # provisioner
-ssh root@master1.example.com oc run workshop-provisioner2 -it --image=openshiftdemos/workshop-provisioner:0.7 --restart=Never \
+ssh root@master1.example.com oc run workshop-provisioner -i --tty --image=openshiftdemos/workshop-provisioner:0.7 --restart=Never \
 --env="ADMINUSER=admin" --env="ADMINPASSWORD=somepassword" --env="MASTERHOST=master1-$GUID.oslab.opentlc.com" \
 --env="MASTERPORT=8443" --env="CLOUDDOMAIN=cloudapps-$GUID.oslab.opentlc.com" --env="NUMUSERS=5"
 set +x
