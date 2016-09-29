@@ -93,6 +93,9 @@ done
 # add redhat repo for nexus
 NEXUS_BASE_URL=nexus-$PROJECTNAME.$CLOUDDOMAIN bash addrepo.sh redhat-ga https://maven.repository.redhat.com/ga/
 
+# add jboss repo for nexus
+NEXUS_BASE_URL=nexus-$PROJECTNAME.$CLOUDDOMAIN bash addrepo.sh jboss https://repository.jboss.org/nexus/content/repositories/public
+
 NEXUS_BASE_URL=nexus-$PROJECTNAME.$CLOUDDOMAIN 
 
 # generate the maven settings file
