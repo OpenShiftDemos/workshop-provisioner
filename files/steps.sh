@@ -32,7 +32,7 @@ oc project workshop-infra
 # create gitlab
 oc process -f gitlab-template.yaml -v APPLICATION_HOSTNAME=$GITLABHOSTNAME -v GITLAB_ROOT_PASSWORD=password | oc create -f -
 
-# wait for gitlab to be ready - it's really slow because the image is big and it's just slow in our environment
+# wait for gitlab to be ready
 x=1
 oc get ep gitlab-ce -o yaml | grep "\- addresses:"
 while [ ! $? -eq 0 ]
@@ -82,7 +82,7 @@ do
   sleep 60
   x=$(( $x + 1 ))
 
-  if [ $x -gt 5 ]
+  if [ $x -gt 10 ]
   then
     exit 255
   fi
