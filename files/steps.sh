@@ -14,11 +14,12 @@ set -x
 #chcon -R system_u:object_r:svirt_sandbox_file_t:s0 /var/gitlab
 
 PROJECTNAME=workshop-infra
-GITLABHOSTNAME=gitlab-$PROJECTNAME.$CLOUDDOMAIN
-NEXUS_BASE_URL=nexus-$PROJECTNAME.$CLOUDDOMAIN
+GITLABHOSTNAME=gitlab-ce.$PROJECTNAME.svc.cluster.local
+GITLABEXTHOSTNAME=gitlab-ce-$PROJECTNAME.cloudapps-$BASEDOMAIN
+export NEXUS_BASE_URL=nexus.$PROJECTNAME.svc.cluster.local:8081
 
 # login as user with admin permissions
-oc login --insecure-skip-tls-verify=true https://$MASTERHOST:$MASTERPORT -u $ADMINUSER -p $ADMINPASSWORD
+oc login --insecure-skip-tls-verify=true https://master1-$BASEDOMAIN:$MASTERPORT -u $ADMINUSER -p $ADMINPASSWORD
 
 # create nexus project
 oc adm new-project workshop-infra --admin $ADMINUSER --node-selector='env=infra'
@@ -29,8 +30,12 @@ oc adm policy add-scc-to-group hostmount-anyuid system:serviceaccounts:workshop-
 # switch to workshop-infra project
 oc project workshop-infra
 
+# deploy the lab document server
+oc new-app --name=labs https://github.com/openshift-evangelists/openshift-workshops.git
+oc expose service labs
+
 # create gitlab
-oc process -f gitlab-template.yaml -v APPLICATION_HOSTNAME=$GITLABHOSTNAME -v GITLAB_ROOT_PASSWORD=password | oc create -f -
+oc process -f gitlab-template.yaml -v APPLICATION_HOSTNAME=$GITLABEXTHOSTNAME -v GITLAB_ROOT_PASSWORD=password | oc create -f -
 
 # wait for gitlab to be ready
 x=1
@@ -91,12 +96,10 @@ do
 done
 
 # add redhat repo for nexus
-NEXUS_BASE_URL=nexus-$PROJECTNAME.$CLOUDDOMAIN bash addrepo.sh redhat-ga https://maven.repository.redhat.com/ga/
+bash addrepo.sh redhat-ga https://maven.repository.redhat.com/ga/
 
 # add jboss repo for nexus
-NEXUS_BASE_URL=nexus-$PROJECTNAME.$CLOUDDOMAIN bash addrepo.sh jboss https://repository.jboss.org/nexus/content/repositories/public
-
-NEXUS_BASE_URL=nexus-$PROJECTNAME.$CLOUDDOMAIN 
+bash addrepo.sh jboss https://repository.jboss.org/nexus/content/repositories/public
 
 # generate the maven settings file
 cat << EOF > maven.xml
@@ -119,3 +122,5 @@ git clone https://github.com/gshipley/openshift3mlbparks repos/openshift3mlbpark
 mvn -s maven.xml -f repos/ose3-parks/mlbparks-mongo/pom.xml install
 mvn -s maven.xml -f repos/ose3-parks/web-parksmap/pom.xml install
 mvn -s maven.xml -f repos/openshift3mlbparks/pom.xml install
+
+
