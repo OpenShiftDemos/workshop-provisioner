@@ -10,7 +10,9 @@ RUN yum clean all && \
     yum install -y --setopt=tsflags=nodocs install $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     yum clean all 
-ADD files /root/
 
 WORKDIR /root/
 ENTRYPOINT bash steps.sh
+
+ADD files /root/
+
