@@ -172,8 +172,8 @@ objects:
           deploymentconfig: "${APPLICATION_NAME}-redis"
       spec:
         volumes:
-        - emptyDir:
-            medium: ""
+        - hostPath:
+            path: /var/redis
           name: gitlab-ce-volume-4
         containers:
         - name: gitlab-ce-redis
@@ -258,8 +258,8 @@ objects:
           deploymentconfig: "${APPLICATION_NAME}-postgresql"
       spec:
         volumes:
-        - emptyDir:
-            medium: ""
+        - hostPath:
+            path: /var/postgres
           name: gitlab-ce-volume-3
         containers:
         - name: gitlab-ce-postgresql
