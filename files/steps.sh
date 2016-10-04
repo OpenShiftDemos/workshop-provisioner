@@ -2,24 +2,13 @@
 
 set -x
 
-#master
-#htpasswd -b /etc/origin/openshift-passwd admin somepassword
-#oc adm policy add-cluster-role-to-user cluster-admin admin
-#
-#infra
-#mkdir -p /var/{gitlab/vol1,gitlab/vol2,nexus}
-#chmod -R 777 /var/gitlab
-#chown -R 200:200 /var/nexus
-#chcon -R system_u:object_r:svirt_sandbox_file_t:s0 /var/nexus
-#chcon -R system_u:object_r:svirt_sandbox_file_t:s0 /var/gitlab
-
 PROJECTNAME=workshop-infra
 GITLABHOSTNAME=gitlab-ce.$PROJECTNAME.svc.cluster.local
-GITLABEXTHOSTNAME=gitlab-ce-$PROJECTNAME.cloudapps-$BASEDOMAIN
+GITLABEXTHOSTNAME=gitlab-ce-$PROJECTNAME.$APPS_DOMAIN
 export NEXUS_BASE_URL=nexus.$PROJECTNAME.svc.cluster.local:8081
 
 # login as user with admin permissions
-oc login --insecure-skip-tls-verify=true https://master1-$BASEDOMAIN:$MASTERPORT -u $ADMINUSER -p $ADMINPASSWORD
+oc login --insecure-skip-tls-verify=true $MASTER_URL -u $ADMINUSER -p $ADMINPASSWORD
 
 # create nexus project
 oc adm new-project workshop-infra --admin $ADMINUSER --node-selector='env=infra'
@@ -117,10 +106,9 @@ EOF
 # prime nexus by cleaning
 rm -rf ~/.m2/repository/
 mkdir repos
-git clone https://github.com/jorgemoralespou/ose3-parks repos/ose3-parks
-git clone https://github.com/gshipley/openshift3mlbparks repos/openshift3mlbparks
-mvn -s maven.xml -f repos/ose3-parks/mlbparks-mongo/pom.xml install
-mvn -s maven.xml -f repos/ose3-parks/web-parksmap/pom.xml install
-mvn -s maven.xml -f repos/openshift3mlbparks/pom.xml install
-
-
+git clone https://github.com/openshift-roadshow/nationalparks repos/nationalparks
+git clone https://github.com/openshift-roadshow/mlbparks repos/mlbparks
+git clone https://github.com/openshift-roadshow/parksmap-web repos/parksmap-web
+mvn -s maven.xml -f repos/parksmap-web/pom.xml install
+mvn -s maven.xml -f repos/mlbparks/pom.xml install
+mvn -s maven.xml -f repos/nationalparks/pom.xml install
