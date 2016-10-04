@@ -52,6 +52,9 @@ do
   curl -X POST -H "PRIVATE-TOKEN: $TOKEN_ROOT" -H "Expect:" -F confirm=false \
   -F email=user$x@example.com -F username=user$x -F name=user$x -F password=password \
   "http://$GITLABHOSTNAME/api/v3/users"
+
+  # it's probably a good idea to wait a few seconds after creating a user
+  sleep 3
 done
 
 # bring in external git repos for created users
@@ -60,9 +63,12 @@ do
   TOKEN_DEV=$(curl -Ls http://$GITLABHOSTNAME/api/v3/session --data "login=user$x&password=password" | jq -r .private_token)
   
   curl --header "PRIVATE-TOKEN: ${TOKEN_DEV}" -X POST http://$GITLABHOSTNAME/api/v3/projects \
-  --data-urlencode "name=openshift3nationalparks" \
-  --data-urlencode "import_url=https://gitlab.com/jorgemoralespou/openshift3nationalparks" \
+  --data-urlencode "name=parksmap-web" \
+  --data-urlencode "import_url=https://github.com/openshift-roadshow/parksmap-web" \
   --data-urlencode "public=true"
+
+  # it's probably a good idea to wait a few seconds after cloning the repository
+  sleep 3
 done
 
 # instantiate nexus
